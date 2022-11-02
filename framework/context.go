@@ -12,20 +12,30 @@ import (
 	"time"
 )
 
-// 自定义 Context
 type Context struct {
 	request        *http.Request
 	responseWriter http.ResponseWriter
+	ctx            context.Context
+
 	// 是否超时标记位
 	hasTimeout bool
 	// 写保护机制
-	writeMux *sync.Mutex
+	writerMux *sync.Mutex
 }
 
-// region base function
-// 对外暴露锁
+func NewContext(r *http.Request, w http.ResponseWriter) *Context {
+	return &Context{
+		request:        r,
+		responseWriter: w,
+		ctx:            r.Context(),
+		writerMux:      &sync.Mutex{},
+	}
+}
+
+// #region base function
+
 func (ctx *Context) WriterMux() *sync.Mutex {
-	return ctx.writeMux
+	return ctx.writerMux
 }
 
 func (ctx *Context) GetRequest() *http.Request {
@@ -44,13 +54,13 @@ func (ctx *Context) HasTimeout() bool {
 	return ctx.hasTimeout
 }
 
-// end region
+// #endregion
 
 func (ctx *Context) BaseContext() context.Context {
 	return ctx.request.Context()
 }
 
-// region implement context.Context
+// #region implement context.Context
 func (ctx *Context) Deadline() (deadline time.Time, ok bool) {
 	return ctx.BaseContext().Deadline()
 }
@@ -67,9 +77,9 @@ func (ctx *Context) Value(key interface{}) interface{} {
 	return ctx.BaseContext().Value(key)
 }
 
-// end region
+// #endregion
 
-// region query url
+// #region query url
 func (ctx *Context) QueryInt(key string, def int) int {
 	params := ctx.QueryAll()
 	if vals, ok := params[key]; ok {
@@ -111,11 +121,11 @@ func (ctx *Context) QueryAll() map[string][]string {
 	return map[string][]string{}
 }
 
-// end region
+// #endregion
 
-// region from post
-func (ctx *Context) FromInt(key string, def int) int {
-	params := ctx.FromAll()
+// #region form post
+func (ctx *Context) FormInt(key string, def int) int {
+	params := ctx.FormAll()
 	if vals, ok := params[key]; ok {
 		len := len(vals)
 		if len > 0 {
@@ -129,8 +139,8 @@ func (ctx *Context) FromInt(key string, def int) int {
 	return def
 }
 
-func (ctx *Context) FromString(key string, def string) string {
-	params := ctx.FromAll()
+func (ctx *Context) FormString(key string, def string) string {
+	params := ctx.FormAll()
 	if vals, ok := params[key]; ok {
 		len := len(vals)
 		if len > 0 {
@@ -140,24 +150,25 @@ func (ctx *Context) FromString(key string, def string) string {
 	return def
 }
 
-func (ctx *Context) FromArray(key string, def []string) []string {
-	params := ctx.FromAll()
+func (ctx *Context) FormArray(key string, def []string) []string {
+	params := ctx.FormAll()
 	if vals, ok := params[key]; ok {
 		return vals
 	}
 	return def
 }
 
-func (ctx *Context) FromAll() map[string][]string {
+func (ctx *Context) FormAll() map[string][]string {
 	if ctx.request != nil {
 		return map[string][]string(ctx.request.PostForm)
 	}
 	return map[string][]string{}
 }
 
-// end region
+// #endregion
 
-// region application/json post
+// #region application/json post
+
 func (ctx *Context) BindJson(obj interface{}) error {
 	if ctx.request != nil {
 		body, err := ioutil.ReadAll(ctx.request.Body)
@@ -176,9 +187,10 @@ func (ctx *Context) BindJson(obj interface{}) error {
 	return nil
 }
 
-// end region
+// #endregion
 
-// region response
+// #region response
+
 func (ctx *Context) Json(status int, obj interface{}) error {
 	if ctx.HasTimeout() {
 		return nil
@@ -202,4 +214,4 @@ func (ctx *Context) Text(status int, obj string) error {
 	return nil
 }
 
-// end region
+// #endregion

@@ -1,3 +1,3 @@
-module my-web
+module coredemo
 
 go 1.18

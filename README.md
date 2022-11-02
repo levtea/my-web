@@ -1,1 +1,2 @@
-# my-web
+# coredemo
+coredemo for hade

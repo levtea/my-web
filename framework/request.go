@@ -63,7 +63,7 @@ type IRequest interface {
 	ClientIp() string
 
 	// header
-	Headers() map[string][]string
+	Headers() map[string]string
 	Header(key string) (string, bool)
 
 	// cookie
@@ -74,7 +74,7 @@ type IRequest interface {
 // 获取请求地址中所有参数
 func (ctx *Context) QueryAll() map[string][]string {
 	if ctx.request != nil {
-		return ctx.request.URL.Query()
+		return map[string][]string(ctx.request.URL.Query())
 	}
 	return map[string][]string{}
 }
@@ -218,19 +218,9 @@ func (ctx *Context) Param(key string) interface{} {
 func (ctx *Context) FormAll() map[string][]string {
 	if ctx.request != nil {
 		ctx.request.ParseForm()
-		return ctx.request.PostForm
+		return map[string][]string(ctx.request.PostForm)
 	}
 	return map[string][]string{}
-}
-
-func (ctx *Context) FormInt(key string, def int) (int, bool) {
-	params := ctx.FormAll()
-	if vals, ok := params[key]; ok {
-		if len(vals) > 0 {
-			return cast.ToInt(vals[0]), true
-		}
-	}
-	return def, false
 }
 
 func (ctx *Context) FormInt64(key string, def int64) (int64, bool) {
@@ -269,14 +259,6 @@ func (ctx *Context) FormBool(key string, def bool) (bool, bool) {
 		if len(vals) > 0 {
 			return cast.ToBool(vals[0]), true
 		}
-	}
-	return def, false
-}
-
-func (ctx *Context) FormString(key string, def string) (string, bool) {
-	params := ctx.FormAll()
-	if vals, ok := params[key]; ok {
-		return vals[0], true
 	}
 	return def, false
 }
@@ -394,7 +376,7 @@ func (ctx *Context) ClientIp() string {
 
 // header
 func (ctx *Context) Headers() map[string][]string {
-	return ctx.request.Header
+	return map[string][]string(ctx.request.Header)
 }
 
 func (ctx *Context) Header(key string) (string, bool) {

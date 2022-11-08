@@ -2,12 +2,12 @@ package framework
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"sync"
 	"time"
 )
 
+// Context代表当前请求上下文
 type Context struct {
 	request        *http.Request
 	responseWriter http.ResponseWriter
@@ -15,16 +15,16 @@ type Context struct {
 
 	// 是否超时标记位
 	hasTimeout bool
-	// 写保护机制
-	writerMux *sync.Mutex
+	writerMux  *sync.Mutex
 
 	// 当前请求的handler链条
 	handlers []ControllerHandler
-	index    int // 当前请求用到调用链的哪个节点
+	index    int // 当前请求调用到调用链的哪个节点
 
 	params map[string]string // url路由匹配的参数
 }
 
+// NewContext 初始化一个Context
 func NewContext(r *http.Request, w http.ResponseWriter) *Context {
 	return &Context{
 		request:        r,
@@ -33,27 +33,6 @@ func NewContext(r *http.Request, w http.ResponseWriter) *Context {
 		writerMux:      &sync.Mutex{},
 		index:          -1,
 	}
-}
-
-// 核心函数，调用context的下一个函数
-func (ctx *Context) Next() error {
-	ctx.index++
-	if ctx.index < len(ctx.handlers) {
-		if err := ctx.handlers[ctx.index](ctx); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// 为context设置handlers
-func (ctx *Context) SetHandlers(handlers []ControllerHandler) {
-	ctx.handlers = handlers
-}
-
-// 设置参数
-func (ctx *Context) SetParams(params map[string]string) {
-	ctx.params = params
 }
 
 // #region base function
@@ -78,6 +57,27 @@ func (ctx *Context) HasTimeout() bool {
 	return ctx.hasTimeout
 }
 
+// 为context设置handlers
+func (ctx *Context) SetHandlers(handlers []ControllerHandler) {
+	ctx.handlers = handlers
+}
+
+// 设置参数
+func (ctx *Context) SetParams(params map[string]string) {
+	ctx.params = params
+}
+
+// 核心函数，调用context的下一个函数
+func (ctx *Context) Next() error {
+	ctx.index++
+	if ctx.index < len(ctx.handlers) {
+		if err := ctx.handlers[ctx.index](ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // #endregion
 
 func (ctx *Context) BaseContext() context.Context {
@@ -99,41 +99,6 @@ func (ctx *Context) Err() error {
 
 func (ctx *Context) Value(key interface{}) interface{} {
 	return ctx.BaseContext().Value(key)
-}
-
-// #endregion
-
-func (ctx *Context) FormArray(key string, def []string) []string {
-	params := ctx.FormAll()
-	if vals, ok := params[key]; ok {
-		return vals
-	}
-	return def
-}
-
-// #region response
-
-func (ctx *Context) Json(status int, obj interface{}) error {
-	if ctx.HasTimeout() {
-		return nil
-	}
-	ctx.responseWriter.Header().Set("Content-Type", "application/json")
-	ctx.responseWriter.WriteHeader(status)
-	byt, err := json.Marshal(obj)
-	if err != nil {
-		ctx.responseWriter.WriteHeader(500)
-		return err
-	}
-	ctx.responseWriter.Write(byt)
-	return nil
-}
-
-func (ctx *Context) HTML(status int, obj interface{}, template string) error {
-	return nil
-}
-
-func (ctx *Context) Text(status int, obj string) error {
-	return nil
 }
 
 // #endregion

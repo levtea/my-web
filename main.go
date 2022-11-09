@@ -1,21 +1,25 @@
+// Copyright 2021 jianfengye.  All rights reserved.
+// Use of this source code is governed by a MIT style
+// license that can be found in the LICENSE file.
 package main
 
 import (
 	"context"
-	"coredemo/framework"
-	"coredemo/framework/middleware"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/gohade/hade/framework/gin"
+	"github.com/gohade/hade/framework/middleware"
 )
 
 func main() {
-	core := framework.NewCore()
+	core := gin.New()
 
-	core.Use(middleware.Recovery())
+	core.Use(gin.Recovery())
 	core.Use(middleware.Cost())
 
 	registerRouter(core)

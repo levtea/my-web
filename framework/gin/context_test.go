@@ -93,7 +93,7 @@ func TestContextFormFileFailed(t *testing.T) {
 	mw := multipart.NewWriter(buf)
 	mw.Close()
 	c, _ := CreateTestContext(httptest.NewRecorder())
-	c.Request, _ = http.NewRequest("POST", "/", buf)
+	c.Request, _ = http.NewRequest("POST", "/", nil)
 	c.Request.Header.Set("Content-Type", mw.FormDataContentType())
 	c.engine.MaxMultipartMemory = 8 << 20
 	f, err := c.FormFile("file")

@@ -2,11 +2,10 @@ package app
 
 import (
 	"flag"
-	"path/filepath"
-
 	"github.com/gohade/hade/framework"
 	"github.com/gohade/hade/framework/util"
 	"github.com/pkg/errors"
+	"path/filepath"
 )
 
 // HadeApp 代表hade框架的App实现

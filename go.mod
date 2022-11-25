@@ -11,5 +11,6 @@ require (
 	github.com/spf13/cast v1.4.0
 	github.com/stretchr/testify v1.4.0
 	github.com/ugorji/go/codec v1.1.7
+	golang.org/x/sys v0.2.0 // indirect
 	gopkg.in/yaml.v2 v2.2.8
 )

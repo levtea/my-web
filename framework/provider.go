@@ -8,7 +8,7 @@ type ServiceProvider interface {
 	// Register 在服务容器中注册了一个实例化服务的方法，是否在注册的时候实例化这个服务，需要参考IsDefer接口。
 	Register(Container) NewInstance
 
-	// Boot 在调用实例化服务的时候会调用，可以吧一些准备工作：基础配置，初始化参数的操作放在这个里面
+	// Boot 在调用实例化服务的时候会调用，可以把一些准备工作：基础配置，初始化参数的操作放在这个里面
 	// 如果 Boot 返回 error, 整个服务实例化就会实例化失败，返回错误
 	Boot(Container) error
 

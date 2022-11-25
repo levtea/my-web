@@ -71,13 +71,24 @@ func (hade *HadeContainer) Bind(provider ServiceProvider) error {
 		}
 		hade.instances[key] = instance
 	}
-
 	return nil
+}
+
+func (hade *HadeContainer) IsBind(key string) bool {
+	return hade.findServiceProvider(key) != nil
 }
 
 // Make 方式调用的内部的 make 实现
 func (hade *HadeContainer) Make(key string) (interface{}, error) {
 	return hade.make(key, nil, false)
+}
+
+func (hade *HadeContainer) MustMake(key string) interface{} {
+	serv, err := hade.make(key, nil, false)
+	if err != nil {
+		panic(err)
+	}
+	return serv
 }
 
 // MakeNew 方式使用内部的 make 初始化
@@ -87,7 +98,7 @@ func (hade *HadeContainer) MakeNew(key string, params []interface{}) (interface{
 
 func (hade *HadeContainer) findServiceProvider(key string) ServiceProvider {
 	hade.lock.RLock()
-	defer hade.lock.Unlock()
+	defer hade.lock.RUnlock()
 	if sp, ok := hade.providers[key]; ok {
 		return sp
 	}
@@ -103,7 +114,7 @@ func (hade *HadeContainer) newInstance(sp ServiceProvider, params []interface{})
 		params = sp.Params(hade)
 	}
 	method := sp.Register(hade)
-	ins, err := method(params)
+	ins, err := method(params...)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}

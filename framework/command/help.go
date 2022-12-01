@@ -2,12 +2,11 @@ package command
 
 import (
 	"fmt"
-
 	"github.com/gohade/hade/framework/cobra"
 	"github.com/gohade/hade/framework/contract"
 )
 
-// helpCommand show current environment
+// helpCommand show current envionment
 var DemoCommand = &cobra.Command{
 	Use:   "demo",
 	Short: "demo for framework",
